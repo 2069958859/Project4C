@@ -19,7 +19,7 @@
 #endif
 
 
-Matrix matmul_plain(const Matrix *matrix1, const Matrix *matrix2) {//矩阵相乘
+Matrix matmul_plain2D(const Matrix *matrix1, const Matrix *matrix2) {//矩阵相乘
     Matrix ans;
     if (matrix1->data == NULL || matrix2->data == NULL) {
         printf("The matrixs are not valid! \n");
@@ -28,7 +28,7 @@ Matrix matmul_plain(const Matrix *matrix1, const Matrix *matrix2) {//矩阵相�
         printf("The two matrixs doesn't match! \n");
         ans.data = NULL;
     } else {
-        initialMatrix(&ans, matrix1->row, matrix2->column);
+        initialMatrix2D(&ans, matrix1->row, matrix2->column);
         float temp = 0;
         for (int i = 0; i < matrix1->row; ++i) {
             for (int j = 0; j < matrix2->column; ++j) {
@@ -43,7 +43,7 @@ Matrix matmul_plain(const Matrix *matrix1, const Matrix *matrix2) {//矩阵相�
     return ans;
 }
 
-MatrixOne matmul_plainOneD(const MatrixOne *matrix1, const MatrixOne *matrix2) {//矩阵相乘,一维
+MatrixOne matmul_plain(const MatrixOne *matrix1, const MatrixOne *matrix2) {//矩阵相乘,一维
     MatrixOne ans;
     if (matrix1->data == NULL || matrix2->data == NULL) {
         printf("The matrixs are not valid! \n");
@@ -69,7 +69,7 @@ MatrixOne matmul_plainOneD(const MatrixOne *matrix1, const MatrixOne *matrix2) {
     return ans;
 }
 
-MatrixOne matmul_improvedOneD(const MatrixOne *matrix1, const MatrixOne *matrix2) {//矩阵相乘,一维
+MatrixOne matmul_improved(const MatrixOne *matrix1, const MatrixOne *matrix2) {//矩阵相乘,一维
 #ifdef WITH_AVX2
     __m256 a, b;
     __m256 c = _mm256_setzero_ps();
@@ -91,32 +91,27 @@ MatrixOne matmul_improvedOneD(const MatrixOne *matrix1, const MatrixOne *matrix2
         ans.column = matrix2->column;
 
 
-        // float *p1 = (float *) malloc(sizeof(float) * matrix1->column * matrix1->column);
-        // if (p1 == NULL) {//申请空间失败
-        //     printf("p1 is failed to allocated\n");
-        // }
         float *p2 = (float *) malloc(sizeof(float) * matrix2->column * matrix1->column);
         if (p2 == NULL) {//申请空间失败
             printf("p2 is failed to allocated\n");
         }
 
         size_t o = 0;
-      
 
 
         for (int j = 0; j < matrix2->column; ++j) {
             for (int k = 0; k < matrix1->column / 8 * 8; k += 8) {
-                p2[o++] = matrix1->data[k * matrix1->column + j];
-                p2[o++] = matrix1->data[(1 + k) * matrix1->column + j];
-                p2[o++] = matrix1->data[(2 + k) * matrix1->column + j];
-                p2[o++] = matrix1->data[(3 + k) * matrix1->column + j];
-                p2[o++] = matrix1->data[(4 + k) * matrix1->column + j];
-                p2[o++] = matrix1->data[(5 + k) * matrix1->column + j];
-                p2[o++] = matrix1->data[(6 + k) * matrix1->column + j];
-                p2[o++] = matrix1->data[(7 + k) * matrix1->column + j];
+                p2[o++] = matrix2->data[k * matrix1->column + j];
+                p2[o++] = matrix2->data[(1 + k) * matrix1->column + j];
+                p2[o++] = matrix2->data[(2 + k) * matrix1->column + j];
+                p2[o++] = matrix2->data[(3 + k) * matrix1->column + j];
+                p2[o++] = matrix2->data[(4 + k) * matrix1->column + j];
+                p2[o++] = matrix2->data[(5 + k) * matrix1->column + j];
+                p2[o++] = matrix2->data[(6 + k) * matrix1->column + j];
+                p2[o++] = matrix2->data[(7 + k) * matrix1->column + j];
             }
             for (int k = matrix1->column / 8 * 8; k < matrix1->column; k++) {
-                p2[o++] = matrix1->data[k * matrix1->column + j];
+                p2[o++] = matrix2->data[k * matrix1->column + j];
 
             }
         }
@@ -152,6 +147,8 @@ MatrixOne matmul_improvedOneD(const MatrixOne *matrix1, const MatrixOne *matrix2
             }
             // printf("%d\n",i);
         }
+        free(p2);//释放空间
+
     }
 
     return ans;
@@ -162,7 +159,7 @@ MatrixOne matmul_improvedOneD(const MatrixOne *matrix1, const MatrixOne *matrix2
 }
 
 
-Matrix matmul_improved(const Matrix *matrix1, const Matrix *matrix2) {
+Matrix matmul_improved2D(const Matrix *matrix1, const Matrix *matrix2) {
 #ifdef WITH_AVX2
     __m256 a, b;
     __m256 c = _mm256_setzero_ps();
@@ -175,15 +172,15 @@ Matrix matmul_improved(const Matrix *matrix1, const Matrix *matrix2) {
         printf("The two matrixs doesn't match! \n");
         ans.data = NULL;
     } else {
-        initialMatrix(&ans, matrix1->row, matrix2->column);
+        initialMatrix2D(&ans, matrix1->row, matrix2->column);
 
         float *p1 = (float *) malloc(sizeof(float) * matrix1->column * matrix1->column);
-                if (p1 == NULL) {//申请空间失败
+        if (p1 == NULL) {//申请空间失败
             printf("p1 is failed to allocated\n");
         }
 
         float *p2 = (float *) malloc(sizeof(float) * matrix2->column * matrix1->column);
-                if (p2 == NULL) {//申请空间失败
+        if (p2 == NULL) {//申请空间失败
             printf("p2 is failed to allocated\n");
         }
 
@@ -259,6 +256,9 @@ Matrix matmul_improved(const Matrix *matrix1, const Matrix *matrix2) {
                 temp = 0;
             }
         }
+        free(p1);//释放空间
+        free(p2);
+
     }
     return ans;
 
@@ -269,8 +269,7 @@ Matrix matmul_improved(const Matrix *matrix1, const Matrix *matrix2) {
 }
 
 
-
-void initialMatrix(Matrix *matrix, const int row, const int col) {//初始化一个元素都为0的矩阵
+void initialMatrix2D(Matrix *matrix, const int row, const int col) {//初始化一个元素都为0的矩阵，为加速，省去赋值的步骤
     if (row <= 0 || col <= 0) {
         printf("invalid matrix, please put in again! \n");
 
@@ -294,7 +293,7 @@ void initialMatrix(Matrix *matrix, const int row, const int col) {//初始化一
 }
 
 
-// void initialMatrixOne(MatrixOne *matrix, const int row, const int col) {//初始化一个元素都为0的矩阵,一维
+// void initialMatrixOneD(MatrixOne *matrix, const int row, const int col) {//初始化一个元素都为0的矩阵,一维
 //     if (row <= 0 || col <= 0) {
 //         printf("invalid matrix, please put in again! \n");
 //     } else {
@@ -310,7 +309,7 @@ void initialMatrix(Matrix *matrix, const int row, const int col) {//初始化一
 //     }
 // }
 
-void createRamMatrix(Matrix *matrix, const int row, const int col, const int databound) {//检查合法性
+void createRamMatrix2D(Matrix *matrix, const int row, const int col, const int databound) {//检查合法性
     srand((unsigned) time(NULL));
     if (row <= 0) {
         printf("invalid matrix, please put in again! \n");
@@ -328,7 +327,7 @@ void createRamMatrix(Matrix *matrix, const int row, const int col, const int dat
             }
 
             for (int j = 0; j < col; j++) {
-            float ram = (float)rand() / RAND_MAX * 2;
+                float ram = (float) rand() / RAND_MAX * 2;
                 matrix->data[i][j] = ram;
             }
         }
@@ -336,7 +335,7 @@ void createRamMatrix(Matrix *matrix, const int row, const int col, const int dat
     // printf("\n");
 }
 
-void createRamMatrixOne(MatrixOne *matrix, const int row, const int col, const int databound) {//检查合法性
+void createRamMatrix(MatrixOne *matrix, const int row, const int col, const int databound) {//检查合法性
     srand((unsigned) time(NULL));
     if (row <= 0) {
         printf("invalid matrix, please put in again! \n");
@@ -344,19 +343,19 @@ void createRamMatrixOne(MatrixOne *matrix, const int row, const int col, const i
         matrix->row = row;
         matrix->column = col;
         matrix->data = (float *) malloc(sizeof(float) * row * col);//申请行空间
-        // initialMatrixOne(matrix, row, col);
+        // initialMatrixOneD(matrix, row, col);
         if (matrix->data == NULL) {//申请空间失败
             printf("The memory is failed to allocated\n");
         }
         for (size_t j = 0; j < (unsigned long long) row * col; j++) {
-            float ram = (float)rand() / RAND_MAX * 2;
+            float ram = (float) rand() / RAND_MAX * databound;
             matrix->data[j] = ram;
         }
 
     }
 }
 
-void showMatrix(const Matrix *matrix) {//打印矩阵
+void showMatrix2D(const Matrix *matrix) {//打印矩阵
     if (matrix->data == NULL) {
         printf("The matrix is null!");
     } else {
@@ -371,7 +370,7 @@ void showMatrix(const Matrix *matrix) {//打印矩阵
 
 }
 
-void showMatrixOne(const MatrixOne *matrix) {//打印矩阵
+void showMatrix(const MatrixOne *matrix) {//打印矩阵
     if (matrix->data == NULL) {
         printf("The matrix is null!");
     } else {
