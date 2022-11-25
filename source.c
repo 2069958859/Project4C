@@ -199,16 +199,15 @@ else{
 
 __m256 c[8] ;
 
-size_t m1row_8 = matrix1->row / 8;
 
 #pragma omp parallel for 
 for (size_t q = 0; q < 8; q++)
 {
    __m256 c=_mm256_setzero_ps();
 
-
-float* matrix1_8 =  matrix1->data +( matrix1->row* q / 8) * matrix1->column ;
-float* ans_8 = ans->data + (matrix1->row* q / 8) * matrix2->column ;
+size_t m1row_8 = matrix1->row / 8;
+float* matrix1_8 =  matrix1->data +( matrix1->row / 8 * q ) * matrix1->column ;
+float* ans_8 = ans->data + (matrix1->row / 8 * q) * matrix2->column ;
         for (size_t i = 0; i < m1row_8; ++i) {
             for (size_t j = 0; j < matrix2->column; ++j) {
                 float temp = 0;
@@ -239,38 +238,38 @@ float* ans_8 = ans->data + (matrix1->row* q / 8) * matrix2->column ;
             // printf("%d\n",i);
         }
 }
+ float* matrix1_else =  matrix1->data +( matrix1->row/ 8 * 8) * matrix1->column ;
+float* ans_else = ans->data + (matrix1->row/ 8 * 8) * matrix2->column ;
 
-//  float* matrix1_else =  matrix1->data +( matrix1->row* 8 / 8) * matrix1->column ;
-// float* ans_else = ans->data + (matrix1->row* 8 / 8) * matrix2->column ;
+        for (size_t i = 0; i < matrix1->row-matrix1->row /8* 8; ++i) {//tail
+            for (size_t j = 0; j < matrix2->column; ++j) {
+                float temp = 0;
+                float sum[8] = {0};
+                __m256 c = _mm256_setzero_ps();
+                ans_else[i * matrix1->row + j] = 0;
 
-//         for (size_t i = 0; i < matrix1->row-m1row_8 * 8; ++i) {//tail
-//             for (size_t j = 0; j < matrix2->column; ++j) {
-//                 float temp = 0;
-//                 float sum[8] = {0};
-//                  c[7] = _mm256_setzero_ps();
-//                 ans_else[i * matrix1->row + j] = 0;
+                size_t i1 = i * matrix1->column;
+                size_t j1 = j * matrix2->row;
 
-//                 size_t i1 = i * matrix1->column;
-//                 size_t j1 = j * matrix2->row;
+                for (size_t k = 0; k < matrix1->column / 8 * 8; k += 8) {
+                    a = _mm256_loadu_ps(matrix1_else + i1 + k);
+                    b = _mm256_loadu_ps(p2 + j1 + k);
+                    c = _mm256_add_ps(c, _mm256_mul_ps(a, b));
 
-//                 for (size_t k = 0; k < matrix1->column / 8 * 8; k += 8) {
-//                     a[7] = _mm256_loadu_ps(matrix1_else + i1 + k);
-//                     b[7] = _mm256_loadu_ps(p2 + j1 + k);
-//                     c[7] = _mm256_add_ps(c[7], _mm256_mul_ps(a[7], b[7]));
-//                 }
-//                 _mm256_storeu_ps(sum, c[7]);
+                }
+                _mm256_storeu_ps(sum, c);
 
-//                 ans_else[i * matrix2->column + j] = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7];
+                ans_else[i * matrix2->column + j] = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7];
 
-//                 for (size_t k = matrix1->column / 8 * 8; k < matrix1->column; k += 1) {
-//                     //Tail case
-//                     temp += matrix1_else[i1 + k] * p2[j1+k];
-//                 }
-//                 ans_else[i * matrix2->column + j] += temp;
-//                 temp = 0;
-//             }
-//             // printf("%d\n",i);
-//         }
+                for (size_t k = matrix1->column / 8 * 8; k < matrix1->column; k += 1) {
+                    //Tail case
+                    ans_else[i * matrix2->column + j]+= matrix1_else[i1 + k] * p2[j1+k];                
+}
+                // ans_else[i * matrix2->column + j] += temp;
+                // temp = 0;
+            }
+            // printf("%d\n",i);
+        }
 
 
         free(p2);//释放空间
