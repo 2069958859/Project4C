@@ -19,12 +19,9 @@
 //cmake . -DCMAKE_BUILD_TYPE=Release -Bbuild
 int main() {
 
-//  int coreNum = omp_get_num_procs();
-//     printf("core: %d\n", coreNum);
-
     // clock_t start0, end0, start1, end1, start2, end2, start3, end3, start4, end4, start5, end5;
 
-    size_t size = 2000;
+    size_t size = 8000;
 
     MatrixOne mm1;
     MatrixOne mm2;
@@ -73,7 +70,7 @@ int main() {
 
 
     float difference = 0;//看结果与OpenBlas的差异
-    for (size_t i = 0; i < size * size; i++) {
+    for (size_t i = 0; i < size*size; i++) {
         // printf("%f  ",fabsf(mm5.data[i] - mm4.data[i]));
         difference = difference + (fabsf(mm5.data[i] - mm4.data[i]) < 0.00001 ? 0 : fabsf(mm5.data[i] - mm4.data[i]));
     }
@@ -84,7 +81,20 @@ int main() {
     // matmul_plain(&mm1, &mm2,&mm3);
     // double end3=omp_get_wtime();
     // printf("plainOneD spend time: %lf\n", (double) (end3 - start3));
-    // showMatrix(&mm3);
+    // // showMatrix(&mm3);
 
+    // double start_1=omp_get_wtime();
+    // matmul_plain11(&mm1, &mm2,&mm5);
+    // double end_1=omp_get_wtime();
+    // printf("plainOneD-1 spend time: %lf\n", (double) (end_1 - start_1));
+    // // showMatrix(&mm5);
+
+
+    // float difference = 0;//看结果与OpenBlas的差异
+    // for (size_t i = 0; i < size*size; i++) {
+    //     // printf("%f  ",fabsf(mm5.data[i] - mm4.data[i]));
+    //     difference = difference + (fabsf(mm5.data[i] - mm3.data[i]) < 0.00001 ? 0 : fabsf(mm5.data[i] - mm3.data[i]));
+    // }
+    // printf("difference: %.6f\n", difference);
 
 }

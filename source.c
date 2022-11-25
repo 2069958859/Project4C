@@ -263,10 +263,10 @@ float* ans_else = ans->data + (matrix1->row/ 8 * 8) * matrix2->column ;
 
                 for (size_t k = matrix1->column / 8 * 8; k < matrix1->column; k += 1) {
                     //Tail case
-                    ans_else[i * matrix2->column + j]+= matrix1_else[i1 + k] * p2[j1+k];                
+                    temp+= matrix1_else[i1 + k] * p2[j1+k];                
 }
-                // ans_else[i * matrix2->column + j] += temp;
-                // temp = 0;
+                ans_else[i * matrix2->column + j] += temp;
+                temp = 0;
             }
             // printf("%d\n",i);
         }
