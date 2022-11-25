@@ -135,7 +135,7 @@ bool matmul_plain(const MatrixOne *matrix1, const MatrixOne *matrix2, MatrixOne 
 
 bool matmul_improved(const MatrixOne *matrix1, const MatrixOne *matrix2, MatrixOne *ans) {//矩阵相乘,一维
 // #ifdef WITH_AVX2
-    __m256 a[8], b[8];
+    __m256 a, b;
     // __m256 c = _mm256_setzero_ps();
 
     if(matrix1==NULL||matrix2==NULL||ans==NULL){
@@ -194,6 +194,7 @@ if(matrix1->row<8){
         }
         return true;
     }
+
 else{
 
 __m256 c[8] ;
@@ -203,7 +204,7 @@ size_t m1row_8 = matrix1->row / 8;
 #pragma omp parallel for 
 for (size_t q = 0; q < 8; q++)
 {
-    c[q]=_mm256_setzero_ps();
+   __m256 c=_mm256_setzero_ps();
 
 
 float* matrix1_8 =  matrix1->data +( matrix1->row* q / 8) * matrix1->column ;
@@ -212,19 +213,19 @@ float* ans_8 = ans->data + (matrix1->row* q / 8) * matrix2->column ;
             for (size_t j = 0; j < matrix2->column; ++j) {
                 float temp = 0;
                 float sum[8] = {0};
-                 c[q] = _mm256_setzero_ps();
+                 c = _mm256_setzero_ps();
                 ans_8[i * matrix1->row + j] = 0;
 
                 size_t i1 = i * matrix1->column;
                 size_t j1 = j * matrix2->row;
 
                 for (size_t k = 0; k < matrix1->column / 8 * 8; k += 8) {
-                    a[q] = _mm256_loadu_ps(matrix1_8 + i1 + k);
-                    b[q] = _mm256_loadu_ps(p2 + j1 + k);
-                    c[q] = _mm256_add_ps(c[q], _mm256_mul_ps(a[q], b[q]));
+                    a = _mm256_loadu_ps(matrix1_8 + i1 + k);
+                    b = _mm256_loadu_ps(p2 + j1 + k);
+                    c = _mm256_add_ps(c, _mm256_mul_ps(a, b));
 
                 }
-                _mm256_storeu_ps(sum, c[q]);
+                _mm256_storeu_ps(sum, c);
 
                 ans_8[i * matrix2->column + j] = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7];
 
