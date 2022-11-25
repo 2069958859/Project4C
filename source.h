@@ -15,6 +15,8 @@ typedef struct
 // void createRamMatrix2D(Matrix *matrix, const size_t row, const size_t col, const size_t databound); //检查合法性
 // void showMatrix2D(const Matrix *matrix);                                                   //打印矩阵
 
+// bool makeBlock(size_t n,const MatrixOne *matrix1, const MatrixOne *matrix2, MatrixOne *ans);//矩阵相乘,一维
+// bool mulBlock(size_t n , const float *matrix1, const float *matrix2, float *ans);
 
 bool matmul_plain(const MatrixOne *matrix1, const MatrixOne *matrix2, MatrixOne *ans);//矩阵相乘,一维
 bool matmul_improved(const MatrixOne *matrix1, const MatrixOne *matrix2, MatrixOne *ans);//矩阵相乘,一维
