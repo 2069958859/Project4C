@@ -7,6 +7,9 @@ add_definitions(-mavx2 -DWITH_AVX2)
 add_definitions(-fopenmp -lgomp)
 
 set(CMAKE_CXX_STANDARD 11)
+# add_compile_options(-mavx2 -fopenmp)
+# add_compile_options(-O3)
+
 
 # set(CMAKE_C_FLAGS_Release "${CMAKE_C_FLAGS_Release} -O3")
 
